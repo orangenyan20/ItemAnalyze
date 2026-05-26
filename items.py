@@ -2,6 +2,41 @@ import streamlit as st
 from github import Github
 
 # =========================
+# ページ設定
+# =========================
+st.set_page_config(
+    page_title="妖怪ウォッチ3 宝箱記録",
+    layout="wide"
+)
+
+# =========================
+# CSS
+# =========================
+st.markdown("""
+<style>
+
+div.stButton > button {
+    width: 100%;
+    height: 60px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+h3 {
+    text-align: center;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
 # パスワード認証
 # =========================
 APP_PASSWORD = st.secrets["APP_PASSWORD"]
@@ -45,7 +80,7 @@ g = Github(GITHUB_TOKEN)
 repo = g.get_repo(REPO_NAME)
 
 # =========================
-# ジャンル設定
+# ジャンル
 # =========================
 categories = {
     "食べ物": 100,
@@ -53,15 +88,8 @@ categories = {
     "経験値玉": 300,
     "こけし": 400,
     "コイン": 500,
-    "バトルアイテム": 600,
+    "バトル": 600,
     "その他": 700
-}
-
-grades = {
-    "1": 1,
-    "2": 2,
-    "3": 3,
-    "4": 4
 }
 
 # =========================
@@ -119,7 +147,7 @@ def delete_last():
         file, lines = get_file_data()
 
         if len(lines) == 0:
-            st.warning("データがありません")
+            st.warning("データなし")
             return
 
         deleted = lines.pop()
@@ -137,7 +165,7 @@ def delete_last():
             branch=BRANCH
         )
 
-        st.success(f"削除しました: {deleted}")
+        st.success(f"削除: {deleted}")
 
     except Exception as e:
 
@@ -151,52 +179,45 @@ _, current_lines = get_file_data()
 count = len(current_lines)
 
 # =========================
-# UI上部
+# タイトル
 # =========================
 top1, top2 = st.columns([4, 1])
 
 with top1:
-    st.title("妖怪ウォッチ3 宝箱記録")
+    st.title("妖怪ウォッチ3 宝箱")
 
 with top2:
     st.metric("記録数", count)
 
-st.write("数字ボタンを押して記録")
-
 st.divider()
 
 # =========================
-# ボタンUI
+# 横並びレイアウト
 # =========================
-for category_name, category_base in categories.items():
+category_cols = st.columns(len(categories))
 
-    st.subheader(category_name)
+for col, (category_name, base) in zip(category_cols, categories.items()):
 
-    cols = st.columns(4)
+    with col:
 
-    for i, (grade_name, grade_value) in enumerate(grades.items()):
+        st.subheader(category_name)
 
-        value = category_base + grade_value
+        for rank in range(1, 5):
 
-        with cols[i]:
+            value = base + rank
 
             if st.button(
-                grade_name,
-                key=f"{category_name}_{grade_name}"
+                str(rank),
+                key=f"{category_name}_{rank}"
             ):
 
                 success = append_data(value)
 
                 if success:
-
-                    st.success(
-                        f"{value} を記録"
-                    )
-
                     st.rerun()
 
 # =========================
-# 削除ボタン
+# 削除
 # =========================
 st.divider()
 

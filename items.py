@@ -18,7 +18,7 @@ st.markdown("""
 div.stButton > button {
     width: 100%;
     height: 60px;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
 }
 
@@ -31,6 +31,7 @@ div.stButton > button {
 
 h3 {
     text-align: center;
+    font-size: 20px;
 }
 
 </style>
@@ -56,10 +57,12 @@ if not st.session_state.authenticated:
     if st.button("ログイン"):
 
         if password == APP_PASSWORD:
+
             st.session_state.authenticated = True
             st.rerun()
 
         else:
+
             st.error("パスワードが違います")
 
     st.stop()
@@ -80,16 +83,16 @@ g = Github(GITHUB_TOKEN)
 repo = g.get_repo(REPO_NAME)
 
 # =========================
-# ジャンル
+# ジャンル設定
 # =========================
 categories = {
-    "食べ物": 100,
-    "漢方": 200,
-    "経験値玉": 300,
-    "こけし": 400,
-    "コイン": 500,
-    "バトル": 600,
-    "その他": 700
+    "食べ物": [101, 102, 103, 104],
+    "漢方": [201, 202, 203, 204],
+    "経験値玉": [301, 302, 303, 304],
+    "こけし": [401, 402, 403, 404],
+    "コイン": [501, 502, 503, 504],
+    "バトル": [601, 602, 603, 604],
+    "その他": [701, 702, 703, 704]
 }
 
 # =========================
@@ -147,6 +150,7 @@ def delete_last():
         file, lines = get_file_data()
 
         if len(lines) == 0:
+
             st.warning("データなし")
             return
 
@@ -192,23 +196,21 @@ with top2:
 st.divider()
 
 # =========================
-# 横並びレイアウト
+# 横並びボタン
 # =========================
 category_cols = st.columns(len(categories))
 
-for col, (category_name, base) in zip(category_cols, categories.items()):
+for col, (category_name, values) in zip(category_cols, categories.items()):
 
     with col:
 
         st.subheader(category_name)
 
-        for rank in range(1, 5):
-
-            value = base + rank
+        for value in values:
 
             if st.button(
-                str(rank),
-                key=f"{category_name}_{rank}"
+                str(value),
+                key=f"{category_name}_{value}"
             ):
 
                 success = append_data(value)
@@ -217,7 +219,7 @@ for col, (category_name, base) in zip(category_cols, categories.items()):
                     st.rerun()
 
 # =========================
-# 削除
+# 削除ボタン
 # =========================
 st.divider()
 

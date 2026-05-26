@@ -34,7 +34,7 @@ if not st.session_state.authenticated:
 # =========================
 GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
 
-REPO_NAME = "ユーザー名/リポジトリ名"
+REPO_NAME = "orangenyan20/ItemAnalyze"
 FILE_PATH = "data.txt"
 BRANCH = "main"
 

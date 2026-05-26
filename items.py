@@ -1,5 +1,7 @@
 import streamlit as st
 from github import Github
+from datetime import datetime
+import time
 
 # =========================
 # ページ設定
@@ -18,7 +20,7 @@ st.markdown("""
 div.stButton > button {
     width: 100%;
     height: 60px;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: bold;
 }
 
@@ -31,7 +33,6 @@ div.stButton > button {
 
 h3 {
     text-align: center;
-    font-size: 20px;
 }
 
 </style>
@@ -83,7 +84,7 @@ g = Github(GITHUB_TOKEN)
 repo = g.get_repo(REPO_NAME)
 
 # =========================
-# ジャンル設定
+# ジャンル
 # =========================
 categories = {
     "食べ物": [101, 102, 103, 104],
@@ -96,11 +97,14 @@ categories = {
 }
 
 # =========================
-# ファイル取得
+# 最新ファイル取得
 # =========================
-def get_file_data():
+def get_latest_data():
 
-    file = repo.get_contents(FILE_PATH, ref=BRANCH)
+    file = repo.get_contents(
+        FILE_PATH,
+        ref=BRANCH
+    )
 
     content = file.decoded_content.decode("utf-8")
 
@@ -116,29 +120,33 @@ def get_file_data():
 # =========================
 def append_data(value):
 
-    try:
+    for _ in range(3):
 
-        file, lines = get_file_data()
+        try:
 
-        lines.append(str(value))
+            file, lines = get_latest_data()
 
-        updated_content = "\n".join(lines) + "\n"
+            lines.append(str(value))
 
-        repo.update_file(
-            FILE_PATH,
-            f"Add {value}",
-            updated_content,
-            file.sha,
-            branch=BRANCH
-        )
+            updated_content = "\n".join(lines) + "\n"
 
-        return True
+            repo.update_file(
+                FILE_PATH,
+                f"Add {value}",
+                updated_content,
+                file.sha,
+                branch=BRANCH
+            )
 
-    except Exception as e:
+            return True
 
-        st.error(e)
+        except Exception as e:
 
-        return False
+            time.sleep(1)
+
+    st.error("書き込み失敗")
+
+    return False
 
 # =========================
 # 最新削除
@@ -147,7 +155,7 @@ def delete_last():
 
     try:
 
-        file, lines = get_file_data()
+        file, lines = get_latest_data()
 
         if len(lines) == 0:
 
@@ -171,27 +179,36 @@ def delete_last():
 
         st.success(f"削除: {deleted}")
 
-    except Exception as e:
+    except Exception:
 
-        st.error(e)
+        st.error("削除失敗")
 
 # =========================
-# 件数取得
+# 現在データ取得
 # =========================
-_, current_lines = get_file_data()
+_, current_lines = get_latest_data()
 
 count = len(current_lines)
 
+last_data = current_lines[-1] if count > 0 else "-"
+
 # =========================
-# タイトル
+# 上部UI
 # =========================
-top1, top2 = st.columns([4, 1])
+top1, top2, top3 = st.columns([4, 1, 1])
 
 with top1:
     st.title("妖怪ウォッチ3 宝箱")
 
 with top2:
     st.metric("記録数", count)
+
+with top3:
+    st.metric("最新", last_data)
+
+st.caption(
+    f"最終更新: {datetime.now().strftime('%H:%M:%S')}"
+)
 
 st.divider()
 
@@ -219,7 +236,7 @@ for col, (category_name, values) in zip(category_cols, categories.items()):
                     st.rerun()
 
 # =========================
-# 削除ボタン
+# 削除
 # =========================
 st.divider()
 

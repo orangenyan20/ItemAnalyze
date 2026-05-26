@@ -19,9 +19,11 @@ if not st.session_state.authenticated:
     )
 
     if st.button("ログイン"):
+
         if password == APP_PASSWORD:
             st.session_state.authenticated = True
             st.rerun()
+
         else:
             st.error("パスワードが違います")
 
@@ -32,7 +34,7 @@ if not st.session_state.authenticated:
 # =========================
 GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
 
-REPO_NAME = "orangenyan20/ItemAnalyze"
+REPO_NAME = "ユーザー名/リポジトリ名"
 FILE_PATH = "data.txt"
 BRANCH = "main"
 
@@ -43,29 +45,23 @@ g = Github(GITHUB_TOKEN)
 repo = g.get_repo(REPO_NAME)
 
 # =========================
-# データ定義
+# ジャンル設定
 # =========================
 categories = {
-    "食べ物": {
-        "粗品": 1,
-        "普通": 2,
-        "高級": 3,
-        "最高級": 4
-    },
+    "食べ物": 100,
+    "漢方": 200,
+    "経験値玉": 300,
+    "こけし": 400,
+    "コイン": 500,
+    "バトルアイテム": 600,
+    "その他": 700
+}
 
-    "経験値玉": {
-        "粗品": 5,
-        "普通": 6,
-        "高級": 7,
-        "最高級": 8
-    },
-
-    "バトルアイテム": {
-        "粗品": 9,
-        "普通": 10,
-        "高級": 11,
-        "最高級": 12
-    }
+grades = {
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4
 }
 
 # =========================
@@ -108,7 +104,9 @@ def append_data(value):
         return True
 
     except Exception as e:
+
         st.error(e)
+
         return False
 
 # =========================
@@ -133,7 +131,7 @@ def delete_last():
 
         repo.update_file(
             FILE_PATH,
-            f"Delete last line {deleted}",
+            f"Delete {deleted}",
             updated_content,
             file.sha,
             branch=BRANCH
@@ -142,6 +140,7 @@ def delete_last():
         st.success(f"削除しました: {deleted}")
 
     except Exception as e:
+
         st.error(e)
 
 # =========================
@@ -152,41 +151,46 @@ _, current_lines = get_file_data()
 count = len(current_lines)
 
 # =========================
-# UI
+# UI上部
 # =========================
-col1, col2 = st.columns([4, 1])
+top1, top2 = st.columns([4, 1])
 
-with col1:
+with top1:
     st.title("妖怪ウォッチ3 宝箱記録")
 
-with col2:
+with top2:
     st.metric("記録数", count)
 
-st.write("出たアイテムを押してください")
+st.write("数字ボタンを押して記録")
+
+st.divider()
 
 # =========================
-# ボタン
+# ボタンUI
 # =========================
-for category, grades in categories.items():
+for category_name, category_base in categories.items():
 
-    st.subheader(category)
+    st.subheader(category_name)
 
     cols = st.columns(4)
 
-    for i, (grade, value) in enumerate(grades.items()):
+    for i, (grade_name, grade_value) in enumerate(grades.items()):
+
+        value = category_base + grade_value
 
         with cols[i]:
 
             if st.button(
-                f"{grade}",
-                key=f"{category}_{grade}"
+                grade_name,
+                key=f"{category_name}_{grade_name}"
             ):
 
                 success = append_data(value)
 
                 if success:
+
                     st.success(
-                        f"{category} {grade} を記録"
+                        f"{value} を記録"
                     )
 
                     st.rerun()
